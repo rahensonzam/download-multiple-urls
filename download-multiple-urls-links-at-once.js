@@ -28,41 +28,41 @@ async function WRequestAsync(fullURL, httpMethod, fileName) {
 
 	const responseData = {}
 
-	try {
-		const options = {
-			url: fullURL,
-			type: httpMethod,
-			contentType: "application/pdf",
-		}
-		
-		//Note: NOT const reqResponse = await $.ajax(fullURL, options)
-		const reqResponse = $.ajax(fullURL, options)
-		await reqResponse
+	let req = new XMLHttpRequest();
 
-		let blob = new Blob([reqResponse.response], {type: "application/pdf"});
-		let link = document.createElement("a");
-		link.href = window.URL.createObjectURL(blob);
-		link.setAttribute("download", `${fileName}.pdf`);
-		link.click();
+	req.responseType = "blob";
+	req.open(httpMethod, fullURL, true);
 
-		responseData.data = `${fileName}.pdf`
-		responseData.status = `${reqResponse.status} ${reqResponse.statusText}`
+	req.send();
 
-	} catch (error) {
-		if (error.readyState === 4) {
+
+	req.onload = function (event) {
+		if (req.status === 200) {
+			let blob = req.response;
+			let link = document.createElement("a");
+			link.href = window.URL.createObjectURL(blob);
+			link.setAttribute("download", `${fileName}.pdf`);
+			link.click();
+			
+			responseData.data = `${fileName}.pdf`
+			responseData.status = `${req.status} ${req.statusText}`
+		} else {
 			// HTTP error
-			if (typeof error.response !== "undefined") {
+			if (typeof req.response !== "undefined") {
 				//FIXME: req.response contains 404 html page like req.responseText instead of "undefined" like req.responseJSON
 				//Error response from server
 				responseData.errorType = "httpWithData"
-				responseData.error = error.response
+				responseData.error = req.response
 			} else {
 				responseData.errorType = "http"
 			}
 			responseData.status = `${error.status} ${error.statusText}`
 			responseData.data = `${fileName}.pdf`
 		}
-		else if (error.readyState === 0) {
+	};
+
+	req.onerror = function (event) {
+		if (req.readyState === 0) {
 			// Network error (i.e. timeout, connection refused, access denied due to CORS, etc.)
 			responseData.errorType = "network"
 			responseData.error = "Network error"
@@ -77,6 +77,7 @@ async function WRequestAsync(fullURL, httpMethod, fileName) {
 			responseData.data = `${fileName}.pdf`
 		}
 	}
+
 	return responseData
 }
 
