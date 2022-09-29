@@ -10,11 +10,19 @@ let fileNames = [
 	"789.pdf"
 ];
 
-async function downloadAll(urls, fileNames) {
+const dlOptions = {
+	pdf: "pdf",
+	json: "json",
+	mp4: "mp4",
+	editHtml: "editHtml",
+	html: "html"
+}
+
+async function downloadAll(urls, fileNames, dlOption) {
 	const taskList = []
 
 	for (let i = 0; i < urls.length; i++) {
-		taskList.push(WRequestAsync(urls[i], "GET", fileNames[i]))
+		taskList.push(WRequestAsync(urls[i], "GET", fileNames[i], dlOption))
 	}
 
 	const resultList = await Promise.all(taskList)
@@ -24,7 +32,7 @@ async function downloadAll(urls, fileNames) {
 	}
 }
 
-async function WRequestAsync(fullURL, httpMethod, fileName) {
+async function WRequestAsync(fullURL, httpMethod, fileName, dlOption) {
 
 	return new Promise(function (resolve, reject) {
 		let req = new XMLHttpRequest();
@@ -38,9 +46,26 @@ async function WRequestAsync(fullURL, httpMethod, fileName) {
 		req.onload = function (event) {
 			if (req.status >= 200 && req.status < 300) {
 				const responseData = {}
-				let blob = new Blob([req.response], {type: "application/pdf"});
-				// const temp = editHtmlContent(req.response)
-				// let blob = new Blob([temp], {type: "text/html"});
+				let temp
+				let mimeType
+				if (dlOption === dlOptions.pdf) {
+					temp = req.response
+					mimeType = "application/pdf"
+				} else if (dlOption === dlOptions.json) {
+					temp = req.response
+					mimeType = "application/json"
+				} else if (dlOption === dlOptions.mp4) {
+					temp = req.response
+					mimeType = "video/mp4"
+				} else if (dlOption === dlOptions.editHtml) {
+					temp = editHtmlContent(req.response)
+					mimeType = "text/html"
+				} else if (dlOption === dlOptions.html) {
+					temp = req.response
+					mimeType = "text/html"
+				}
+
+				let blob = new Blob([temp], {type: mimeType});
 				let link = document.createElement("a");
 				link.href = window.URL.createObjectURL(blob);
 				link.setAttribute("download", `${fileName}`);
@@ -94,4 +119,4 @@ function editHtmlContent(content){
 	return temp
 }
 
-downloadAll(urls, fileNames)
+downloadAll(urls, fileNames, dlOptions.pdf)
