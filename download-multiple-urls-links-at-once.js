@@ -8,27 +8,26 @@ async function downloadAll(urls) {
 	const taskList = []
 
 	for (let i = 0; i < urls.length; i++) {
-		taskList.push(downloadOne(urls[i]))
+		taskList.push(WRequestAsync(urls[i], "GET"))
 	}
 
-	const resultList = await Promise.all(taskList)
-	console.log(resultList)
-
+	await Promise.all(taskList)
 }
 
-async function downloadOne(url) {
-	let link = document.createElement("a");
+async function WRequestAsync(fullURL, httpMethod) {
 
-	link.setAttribute("download", null);
-	link.style.display = "none";
-
-	document.body.appendChild(link);
-
-	link.setAttribute("href", url);
-	link.click();
-
-	document.body.removeChild(link);
-	return 2
+	$.ajax({
+		url: fullURL,
+		type: httpMethod,
+		contentType: "application/pdf",
+		success: function (data) {
+			let blob = new Blob([data], {type: "application/pdf"});
+			let link = document.createElement("a");
+			link.href = window.URL.createObjectURL(blob);
+			link.setAttribute("download","download");
+			link.click();
+		}
+	});
 }
 
 downloadAll(urls)
