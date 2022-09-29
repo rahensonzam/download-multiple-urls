@@ -4,30 +4,39 @@ let urls = [
 	"https://url/789"
 ];
 
-async function downloadAll(urls) {
+let fileNames = [
+	"123",
+	"456",
+	"789"
+];
+
+async function downloadAll(urls, fileNames) {
 	const taskList = []
 
 	for (let i = 0; i < urls.length; i++) {
-		taskList.push(WRequestAsync(urls[i], "GET"))
+		taskList.push(WRequestAsync(urls[i], "GET", fileNames[i]))
 	}
 
 	await Promise.all(taskList)
 }
 
-async function WRequestAsync(fullURL, httpMethod) {
+async function WRequestAsync(fullURL, httpMethod, fileName) {
 
-	$.ajax({
-		url: fullURL,
-		type: httpMethod,
-		contentType: "application/pdf",
-		success: function (data) {
-			let blob = new Blob([data], {type: "application/pdf"});
-			let link = document.createElement("a");
-			link.href = window.URL.createObjectURL(blob);
-			link.setAttribute("download","download");
-			link.click();
-		}
-	});
+	let req = new XMLHttpRequest();
+
+	req.responseType = "blob";
+	req.open(httpMethod, fullURL, true);
+
+	req.send();
+
+
+	req.onload = function (event) {
+		let blob = req.response;
+		let link = document.createElement("a");
+		link.href = window.URL.createObjectURL(blob);
+		link.setAttribute("download", `${fileName}.pdf`);
+		link.click();
+	};
 }
 
-downloadAll(urls)
+downloadAll(urls, fileNames)
