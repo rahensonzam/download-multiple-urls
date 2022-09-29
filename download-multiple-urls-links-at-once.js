@@ -39,6 +39,8 @@ async function WRequestAsync(fullURL, httpMethod, fileName) {
 			if (req.status >= 200 && req.status < 300) {
 				const responseData = {}
 				let blob = new Blob([req.response], {type: "application/pdf"});
+				// const temp = editHtmlContent(req.response)
+				// let blob = new Blob([temp], {type: "text/html"});
 				let link = document.createElement("a");
 				link.href = window.URL.createObjectURL(blob);
 				link.setAttribute("download", `${fileName}`);
@@ -84,6 +86,12 @@ async function WRequestAsync(fullURL, httpMethod, fileName) {
 			}
 		}
 	})
+}
+
+function editHtmlContent(content){
+	let temp = content
+	temp = temp.replaceAll(`<p style="font-size: 11px;">this</p>`,`<p>that</p>`)
+	return temp
 }
 
 downloadAll(urls, fileNames)
