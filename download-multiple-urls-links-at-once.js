@@ -4,7 +4,19 @@ let urls = [
 	"https://url/789"
 ];
 
-function downloadAll(urls) {
+async function downloadAll(urls) {
+	const taskList = []
+
+	for (let i = 0; i < urls.length; i++) {
+		taskList.push(downloadOne(urls[i]))
+	}
+
+	const resultList = await Promise.all(taskList)
+	console.log(resultList)
+
+}
+
+async function downloadOne(url) {
 	let link = document.createElement("a");
 
 	link.setAttribute("download", null);
@@ -12,12 +24,11 @@ function downloadAll(urls) {
 
 	document.body.appendChild(link);
 
-	for (let i = 0; i < urls.length; i++) {
-		link.setAttribute("href", urls[i]);
-		link.click();
-	}
+	link.setAttribute("href", url);
+	link.click();
 
 	document.body.removeChild(link);
+	return 2
 }
 
 downloadAll(urls)
